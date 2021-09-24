@@ -1,7 +1,9 @@
-// 此库(oldzhai)项目最适合本项目,所以采用,系统学习还请看(崔安兵 https://www.cnblogs.com/cuianbing/p/14376811.html)
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途-oldzhai
-//  作    者   : xihale oldzhai(https://gitee.com/oldzhai/ESP8266Arduino,提供了控制oled的代码)
-//  功能描述   : ESP8266输出粉丝数量
+//////////////////////////////////////////////////////////////////////////////////   
+//本程序只供学习使用，未经作者许可，不得用于其它任何用途
+//  文 件 名   : oled.c
+//  作    者   : oldzhai
+//  生成日期   : 2021-1-18
+//  功能描述   : ESP8266 OLED显示屏I2C驱动显示
 //              说明: 
 //              ----------------------------------------------------------------
 //              GND  电源地
@@ -10,12 +12,11 @@
 //              D1   GPIO5 （SDA）  
 //              ----------------------------------------------------------------
 //******************************************************************************/
-#include "oledfont.h" //字库
-#include <ESP8266WiFi.h>
+#include "oledfont.h"
 
 //I2C管脚的定义
-#define SCL 16
-#define SDA 5
+#define SCL 16  //D0
+#define SDA 5   //D1
 
 //输出电平的宏定义
 #define I2C_SCL_L digitalWrite(SCL,LOW)//SCL
@@ -33,57 +34,25 @@
 #define OLED_CMD  0  //写命令
 #define OLED_DATA 1 //写数据
 
-WiFiClient client;
-String Request;
-
 void setup()
 {
   OLED_Init();
   OLED_ColorTurn(0);//0正常显示 1反色显示
   OLED_DisplayTurn(0);//0正常显示 1翻转180度显示
-
-  Serial.begin(9600);
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(500);
-
-  WiFi.begin("index",""); //连接WiFi 分别填wifi名字和密码
-  while(WiFi.status()!=WL_CONNECTED)
-    delay(500);
-  Serial.println(WiFi.localIP());
-  if(!client.connect("110.43.34.72",80)){
-    Serial.print("connect website error.");
-    return;
-  }
-  Serial.print("connected all right.\n");
-  //vmid请自行抓包
-  Request="GET /x/relation/stat?vmid=564911951&jsonp=jsonp HTTP/1.1\r\nHost: api.bilibili.com\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36 Edg/93.0.961.52\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nAccept-Encoding: gzip, deflate\r\nAccept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6\r\n\r\n";
 }
 
 void loop()
 {
-//  OLED_DrawBMP(0,0,128,64,BMP1); //显示图片
-//  delay(1000); //延时1秒
-//  OLED_Clear();//清除界面
+  OLED_DrawBMP(0,0,128,64,BMP1); //显示图片
+  delay(1000); //延时1秒
+  OLED_Clear();//清除界面
   
-//  OLED_ShowString(0,0,"OLDZHAI",16);
-//  OLED_ShowString(20,4,"2021/1/18",16);
-//  OLED_ShowString(0,6,"ASCII:",16);  
-//  OLED_ShowString(63,6,"CODE:",16);
-//  delay(1000); //延时1秒 delay函数的单位为ms
-//  OLED_Clear();
-
-  client.println(Request); //发送请求
-  String result;
-  while (client.connected() || client.available())
-    if (client.available())
-      result = client.readStringUntil('\n'); //读取最后一行的json数据
-  Serial.println(result); //调试输出json数据
-  Serial.println((result=result.substring(result.lastIndexOf(":")+1,result.length()-2))); //调试输出followers数据
-  OLED_Clear(); //清除显示屏内容
-  OLED_ShowString(center("followers"),2,"followers",16); //输出 标题
-  OLED_ShowString(center(result),4,result.c_str(),16); //输出 粉丝数
-  delay(600000); //等待10分钟
+  OLED_ShowString(0,0,"OLDZHAI",16);
+  OLED_ShowString(20,4,"2021/1/18",16);
+  OLED_ShowString(0,6,"ASCII:",16);  
+  OLED_ShowString(63,6,"CODE:",16);
+  delay(1000); //延时1秒 delay函数的单位为ms
+  OLED_Clear();
 }
 
 
@@ -369,8 +338,4 @@ void OLED_Init(void)
   OLED_WR_Byte(0xA6,OLED_CMD);// Disable Inverse Display On (0xa6/a7) 
   OLED_Clear();
   OLED_WR_Byte(0xAF,OLED_CMD); /*display ON*/ 
-}
-
-unsigned long long center(String a){
-  return ((16-a.length())/2)*8;
 }
